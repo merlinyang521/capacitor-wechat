@@ -1,0 +1,10 @@
+{
+  "appId": "app.capgo.wechat",
+  "appName": "WeChat Example",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}
