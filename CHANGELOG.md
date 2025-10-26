@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.0.2](https://github.com/Cap-go/capacitor-wechat/compare/7.0.1...7.0.2) (2025-10-26)
+
+
+### Bug Fixes
+
+* android build ([8db86f8](https://github.com/Cap-go/capacitor-wechat/commit/8db86f8bc32362e2414359487b75a04e3eec9469))
+
 ## 7.0.1 (2025-10-26)
 
 ## [0.0.1] - 2025-10-26
