@@ -78,8 +78,7 @@ public class CapacitorWechatPlugin extends Plugin {
         String packageValue = call.getString("package");
         String sign = call.getString("sign");
 
-        if (partnerId == null || prepayId == null || nonceStr == null ||
-            timeStamp == null || packageValue == null || sign == null) {
+        if (partnerId == null || prepayId == null || nonceStr == null || timeStamp == null || packageValue == null || sign == null) {
             call.reject("Missing required payment parameters");
             return;
         }
@@ -113,8 +112,7 @@ public class CapacitorWechatPlugin extends Plugin {
         String timeStamp = call.getString("timeStamp");
         String nonceStr = call.getString("nonceStr");
 
-        if (appId == null || signType == null || cardSign == null ||
-            timeStamp == null || nonceStr == null) {
+        if (appId == null || signType == null || cardSign == null || timeStamp == null || nonceStr == null) {
             call.reject("Missing required invoice parameters");
             return;
         }
