@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [7.0.5](https://github.com/Cap-go/capacitor-wechat/compare/7.0.4...7.0.5) (2025-10-27)
+
+
+### Bug Fixes
+
+* renovate capacitor dep ([c57b0c4](https://github.com/Cap-go/capacitor-wechat/commit/c57b0c42669af9eb8b211eee62723ab439996dd3))
+
 ## [7.0.4](https://github.com/Cap-go/capacitor-wechat/compare/7.0.3...7.0.4) (2025-10-27)
 
 

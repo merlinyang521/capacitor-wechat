@@ -10,7 +10,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "CapacitorWechat")
 public class CapacitorWechatPlugin extends Plugin {
 
-    private final String PLUGIN_VERSION = "7.0.4";
+    private final String PLUGIN_VERSION = "7.0.5";
 
     @Override
     public void load() {
