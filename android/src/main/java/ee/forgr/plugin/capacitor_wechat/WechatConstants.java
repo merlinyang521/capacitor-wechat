@@ -1,6 +1,7 @@
 package ee.forgr.plugin.capacitor_wechat;
 
 final class WechatConstants {
+
     static final String PREFS_NAME = "CapacitorWechatConfig";
     static final String PREF_APP_ID = "appId";
     static final String PREF_UNIVERSAL_LINK = "universalLink";

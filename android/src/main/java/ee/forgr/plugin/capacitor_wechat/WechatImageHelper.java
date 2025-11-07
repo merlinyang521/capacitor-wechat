@@ -8,7 +8,6 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
-
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -19,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 final class WechatImageHelper {
+
     private static final int MAX_THUMB_BYTES = 128 * 1024;
 
     private WechatImageHelper() {}

@@ -2,17 +2,16 @@ package ee.forgr.plugin.capacitor_wechat;
 
 import android.content.Context;
 import android.text.TextUtils;
-
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
-
 import java.lang.ref.WeakReference;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 final class WechatManager {
+
     private static final WechatManager INSTANCE = new WechatManager();
 
     private final Queue<BaseResp> pendingResponses = new ConcurrentLinkedQueue<>();
