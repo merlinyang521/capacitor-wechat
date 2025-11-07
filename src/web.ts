@@ -12,6 +12,10 @@ import type {
 } from './definitions';
 
 export class CapacitorWechatWeb extends WebPlugin implements CapacitorWechatPlugin {
+  async initialize(): Promise<void> {
+    throw this.unavailable('initialize is not available on the web.');
+  }
+
   isInstalled(): Promise<{ installed: boolean }> {
     return Promise.resolve({ installed: false });
   }
@@ -32,7 +36,7 @@ export class CapacitorWechatWeb extends WebPlugin implements CapacitorWechatPlug
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  openMiniProgram(_options: WechatMiniProgramOptions): Promise<void> {
+  openMiniProgram(_options: WechatMiniProgramOptions): Promise<{ extMsg?: string }> {
     throw new Error('Method not implemented on web platform.');
   }
 

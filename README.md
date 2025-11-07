@@ -21,6 +21,24 @@ npx cap sync
 
 ## Configuration
 
+### Capacitor config
+
+Add your WeChat credentials to `capacitor.config.ts` (or `.json`). You can override them at runtime by calling `CapacitorWechat.initialize(...)`.
+
+```ts
+const config: CapacitorConfig = {
+  appId: 'com.example.app',
+  appName: 'Example',
+  webDir: 'dist',
+  plugins: {
+    CapacitorWechat: {
+      appId: 'wx1234567890abcdef',
+      universalLink: 'https://your-universal-link.example.com/'
+    }
+  }
+};
+```
+
 ### iOS
 
 Add the following to your `Info.plist`:
@@ -74,14 +92,38 @@ Add the following to your `AndroidManifest.xml`:
 
 You'll need to integrate the WeChat SDK into your Android project. Add the WeChat SDK dependency to your `build.gradle` or download it from the [WeChat Open Platform](https://developers.weixin.qq.com/doc/oplatform/en/Mobile_App/Access_Guide/Android.html).
 
+Create `WXEntryActivity` and `WXPayEntryActivity` inside your application's package (`your.package.name.wxapi`). Both activities should extend `ee.forgr.plugin.capacitor_wechat.WechatResponseActivity` so the plugin can receive callbacks from WeChat:
+
+```java
+package your.package.name.wxapi;
+
+import ee.forgr.plugin.capacitor_wechat.WechatResponseActivity;
+
+public class WXEntryActivity extends WechatResponseActivity {}
+
+public class WXPayEntryActivity extends WechatResponseActivity {}
+```
+
+Register these activities in your app manifest just like the snippet above (WeChat requires both for general SDK + Pay callbacks).
+
 ## Setup
 
-Before using any WeChat functionality, you need to register your app with a WeChat App ID from the [WeChat Open Platform](https://open.weixin.qq.com/).
+Before using any WeChat functionality, you need to register your app with a WeChat App ID from the [WeChat Open Platform](https://open.weixin.qq.com/). Once you have the credentials, either place them in `capacitor.config` or call `CapacitorWechat.initialize` before making other calls:
+
+```ts
+import { CapacitorWechat } from '@capgo/capacitor-wechat';
+
+await CapacitorWechat.initialize({
+  appId: 'wx1234567890abcdef',
+  universalLink: 'https://your-universal-link.example.com/'
+});
+```
 
 ## API
 
 <docgen-index>
 
+* [`initialize(...)`](#initialize)
 * [`isInstalled()`](#isinstalled)
 * [`auth(...)`](#auth)
 * [`share(...)`](#share)
@@ -97,6 +139,26 @@ Before using any WeChat functionality, you need to register your app with a WeCh
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
 Capacitor WeChat Plugin - WeChat SDK integration for authentication, sharing, payments, and mini-programs.
+
+### initialize(...)
+
+```typescript
+initialize(options: WechatInitializationOptions) => Promise<void>
+```
+
+Initialize the WeChat SDK with your application credentials.
+
+You can also set these values in `capacitor.config.ts` under the `CapacitorWechat`
+plugin configuration. Calling this method overrides any bundled configuration at runtime.
+
+| Param         | Type                                                                                | Description                                                   |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **`options`** | <code><a href="#wechatinitializationoptions">WechatInitializationOptions</a></code> | - Initialization options including the required WeChat App ID |
+
+**Since:** 1.1.0
+
+--------------------
+
 
 ### isInstalled()
 
@@ -169,7 +231,7 @@ Send payment request to WeChat Pay.
 ### openMiniProgram(...)
 
 ```typescript
-openMiniProgram(options: WechatMiniProgramOptions) => Promise<void>
+openMiniProgram(options: WechatMiniProgramOptions) => Promise<{ extMsg?: string; }>
 ```
 
 Open WeChat mini-program.
@@ -177,6 +239,8 @@ Open WeChat mini-program.
 | Param         | Type                                                                          | Description                                        |
 | ------------- | ----------------------------------------------------------------------------- | -------------------------------------------------- |
 | **`options`** | <code><a href="#wechatminiprogramoptions">WechatMiniProgramOptions</a></code> | - Mini-program options including username and path |
+
+**Returns:** <code>Promise&lt;{ extMsg?: string; }&gt;</code>
 
 **Since:** 1.0.0
 
@@ -218,6 +282,16 @@ Get the native Capacitor plugin version.
 
 
 ### Interfaces
+
+
+#### WechatInitializationOptions
+
+WeChat initialization options.
+
+| Prop                | Type                | Description                                                         |
+| ------------------- | ------------------- | ------------------------------------------------------------------- |
+| **`appId`**         | <code>string</code> | Required WeChat application ID.                                     |
+| **`universalLink`** | <code>string</code> | iOS universal link that is associated with your WeChat application. |
 
 
 #### WechatAuthResponse
@@ -290,9 +364,19 @@ WeChat mini-program options.
 
 WeChat invoice response.
 
-| Prop        | Type                  | Description                 |
-| ----------- | --------------------- | --------------------------- |
-| **`cards`** | <code>string[]</code> | Array of selected card IDs. |
+| Prop        | Type                             | Description                 |
+| ----------- | -------------------------------- | --------------------------- |
+| **`cards`** | <code>WechatInvoiceCard[]</code> | Array of selected card IDs. |
+
+
+#### WechatInvoiceCard
+
+WeChat invoice card item.
+
+| Prop              | Type                | Description                        |
+| ----------------- | ------------------- | ---------------------------------- |
+| **`cardId`**      | <code>string</code> | The selected card identifier.      |
+| **`encryptCode`** | <code>string</code> | Encrypted code returned by WeChat. |
 
 
 #### WechatInvoiceOptions
@@ -399,19 +483,19 @@ const payWithWechat = async () => {
 
 ```typescript
 const openMiniProgram = async () => {
-  await CapacitorWechat.openMiniProgram({
+  const { extMsg } = await CapacitorWechat.openMiniProgram({
     username: 'gh_xxxxxxxxxxxxx', // Mini program original ID
     path: 'pages/index/index',
     type: 0 // 0 = Release, 1 = Test, 2 = Preview
   });
+
+  console.log('Mini program returned:', extMsg);
 };
 ```
 
 ## Important Notes
 
-1. **WeChat SDK Integration Required**: This plugin provides the Capacitor interface, but you need to integrate the official WeChat SDK into your native projects:
-   - iOS: [WeChat SDK for iOS](https://developers.weixin.qq.com/doc/oplatform/en/Mobile_App/Access_Guide/iOS.html)
-   - Android: [WeChat SDK for Android](https://developers.weixin.qq.com/doc/oplatform/en/Mobile_App/Access_Guide/Android.html)
+1. **WeChat SDK**: The plugin pulls the official SDKs via CocoaPods (`WechatOpenSDK`) and Gradle (`com.tencent.mm.opensdk:wechat-sdk-android-without-mta`). If you use a custom build setup, ensure those dependencies stay intact.
 
 2. **App Registration**: You must register your app on the [WeChat Open Platform](https://open.weixin.qq.com/) to get an App ID.
 

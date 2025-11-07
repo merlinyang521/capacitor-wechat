@@ -5,6 +5,26 @@
  */
 export interface CapacitorWechatPlugin {
   /**
+   * Initialize the WeChat SDK with your application credentials.
+   *
+   * You can also set these values in `capacitor.config.ts` under the `CapacitorWechat`
+   * plugin configuration. Calling this method overrides any bundled configuration at runtime.
+   *
+   * @param options - Initialization options including the required WeChat App ID
+   * @returns Promise that resolves when initialization completes
+   * @throws Error if the App ID is missing or SDK initialization fails
+   * @since 1.1.0
+   * @example
+   * ```typescript
+   * await CapacitorWechat.initialize({
+   *   appId: 'wx1234567890',
+   *   universalLink: 'https://example.com/app/'
+   * });
+   * ```
+   */
+  initialize(options: WechatInitializationOptions): Promise<void>;
+
+  /**
    * Check if WeChat app is installed on the device.
    *
    * @returns Promise that resolves with installation status
@@ -95,19 +115,19 @@ export interface CapacitorWechatPlugin {
    * Open WeChat mini-program.
    *
    * @param options - Mini-program options including username and path
-   * @returns Promise that resolves when mini-program is opened
+   * @returns Promise that resolves with optional extra data from the mini-program
    * @throws Error if opening mini-program fails
    * @since 1.0.0
    * @example
    * ```typescript
-   * await CapacitorWechat.openMiniProgram({
+   * const { extMsg } = await CapacitorWechat.openMiniProgram({
    *   username: 'gh_xxxxxxxxxxxxx',
    *   path: 'pages/index/index',
    *   type: 0 // 0 = Release, 1 = Test, 2 = Preview
    * });
    * ```
    */
-  openMiniProgram(options: WechatMiniProgramOptions): Promise<void>;
+  openMiniProgram(options: WechatMiniProgramOptions): Promise<{ extMsg?: string }>;
 
   /**
    * Choose invoice from WeChat.
@@ -337,5 +357,35 @@ export interface WechatInvoiceResponse {
   /**
    * Array of selected card IDs.
    */
-  cards: string[];
+  cards: WechatInvoiceCard[];
+}
+
+/**
+ * WeChat invoice card item.
+ */
+export interface WechatInvoiceCard {
+  /**
+   * The selected card identifier.
+   */
+  cardId: string;
+
+  /**
+   * Encrypted code returned by WeChat.
+   */
+  encryptCode?: string;
+}
+
+/**
+ * WeChat initialization options.
+ */
+export interface WechatInitializationOptions {
+  /**
+   * Required WeChat application ID.
+   */
+  appId: string;
+
+  /**
+   * iOS universal link that is associated with your WeChat application.
+   */
+  universalLink?: string;
 }

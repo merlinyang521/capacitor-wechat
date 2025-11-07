@@ -3,6 +3,10 @@
   "appName": "WeChat Example",
   "webDir": "dist",
   "plugins": {
+    "CapacitorWechat": {
+      "appId": "wx_YOUR_APP_ID",
+      "universalLink": "https://your-universal-link.example.com/"
+    },
     "SplashScreen": {
       "launchAutoHide": false
     }

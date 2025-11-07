@@ -1,16 +1,13 @@
 import Foundation
 import Capacitor
 
-/**
- * Please read the Capacitor iOS Plugin Development Guide
- * here: https://capacitorjs.com/docs/plugins/ios
- */
 @objc(CapacitorWechatPlugin)
 public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
     private let pluginVersion: String = "7.0.8"
     public let identifier = "CapacitorWechatPlugin"
     public let jsName = "CapacitorWechat"
     public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "isInstalled", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "auth", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "share", returnType: CAPPluginReturnPromise),
@@ -20,45 +17,79 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let implementation = CapacitorWechat()
+    private let implementation = CapacitorWechat.shared
+
+    override public func load() {
+        super.load()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleOpenURL(_:)), name: .capacitorOpenURL, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleContinueUserActivity(_:)),
+            name: Notification.Name("capacitorContinueUserActivity"),
+            object: nil
+        )
+
+        implementation.bootstrap(appId: getConfig().getString("appId"), universalLink: getConfig().getString("universalLink"))
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc func initialize(_ call: CAPPluginCall) {
+        guard let appId = call.getString("appId") else {
+            call.reject("Missing appId parameter.")
+            return
+        }
+        do {
+            try implementation.configure(appId: appId, universalLink: call.getString("universalLink"))
+            call.resolve()
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
+        }
+    }
 
     @objc func isInstalled(_ call: CAPPluginCall) {
-        call.resolve([
-            "installed": implementation.isInstalled()
-        ])
+        let installed = implementation.isWechatInstalled()
+        call.resolve(["installed": installed])
     }
 
     @objc func auth(_ call: CAPPluginCall) {
         guard let scope = call.getString("scope") else {
-            call.reject("Missing scope parameter")
+            call.reject("Missing scope parameter.")
+            return
+        }
+        guard let presenter = bridge?.viewController else {
+            call.reject("No active view controller to present WeChat UI.")
             return
         }
 
-        let state = call.getString("state")
-
-        implementation.auth(scope: scope, state: state) { result in
-            switch result {
-            case .success(let response):
-                call.resolve([
-                    "code": response.code,
-                    "state": response.state ?? ""
-                ])
-            case .failure(let error):
-                call.reject("Authentication failed: \(error.localizedDescription)")
+        do {
+            try implementation.auth(scope: scope, state: call.getString("state"), presenter: presenter) { result in
+                switch result {
+                case .success(let response):
+                    call.resolve([
+                        "code": response.code,
+                        "state": response.state ?? ""
+                    ])
+                case .failure(let error):
+                    call.reject(error.localizedDescription, nil, error)
+                }
             }
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
         }
     }
 
     @objc func share(_ call: CAPPluginCall) {
-        guard let scene = call.getInt("scene"),
-              let type = call.getString("type") else {
-            call.reject("Missing required parameters")
+        guard let scene = call.getInt("scene") else {
+            call.reject("Missing scene parameter.")
             return
         }
 
         let options = WechatShareOptions(
             scene: scene,
-            type: type,
+            type: call.getString("type"),
             text: call.getString("text"),
             title: call.getString("title"),
             description: call.getString("description"),
@@ -72,13 +103,17 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
             miniProgramWebPageUrl: call.getString("miniProgramWebPageUrl")
         )
 
-        implementation.share(options: options) { result in
-            switch result {
-            case .success:
-                call.resolve()
-            case .failure(let error):
-                call.reject("Share failed: \(error.localizedDescription)")
+        do {
+            try implementation.share(options: options) { result in
+                switch result {
+                case .success:
+                    call.resolve()
+                case .failure(let error):
+                    call.reject(error.localizedDescription, nil, error)
+                }
             }
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
         }
     }
 
@@ -87,9 +122,9 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
               let prepayId = call.getString("prepayId"),
               let nonceStr = call.getString("nonceStr"),
               let timeStamp = call.getString("timeStamp"),
-              let package = call.getString("package"),
+              let packageValue = call.getString("package"),
               let sign = call.getString("sign") else {
-            call.reject("Missing required payment parameters")
+            call.reject("Missing required payment parameters.")
             return
         }
 
@@ -98,36 +133,51 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
             prepayId: prepayId,
             nonceStr: nonceStr,
             timeStamp: timeStamp,
-            package: package,
+            package: packageValue,
             sign: sign
         )
 
-        implementation.sendPaymentRequest(options: options) { result in
-            switch result {
-            case .success:
-                call.resolve()
-            case .failure(let error):
-                call.reject("Payment failed: \(error.localizedDescription)")
+        do {
+            try implementation.sendPaymentRequest(options: options) { result in
+                switch result {
+                case .success:
+                    call.resolve()
+                case .failure(let error):
+                    call.reject(error.localizedDescription, nil, error)
+                }
             }
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
         }
     }
 
     @objc func openMiniProgram(_ call: CAPPluginCall) {
         guard let username = call.getString("username") else {
-            call.reject("Missing username parameter")
+            call.reject("Missing username parameter.")
             return
         }
 
-        let path = call.getString("path")
-        let type = call.getInt("type") ?? 0
+        let options = WechatMiniProgramOptions(
+            username: username,
+            path: call.getString("path"),
+            type: call.getInt("type")
+        )
 
-        implementation.openMiniProgram(username: username, path: path, type: type) { result in
-            switch result {
-            case .success:
-                call.resolve()
-            case .failure(let error):
-                call.reject("Failed to open mini program: \(error.localizedDescription)")
+        do {
+            try implementation.openMiniProgram(options: options) { result in
+                switch result {
+                case .success(let extMsg):
+                    var payload: [String: String] = [:]
+                    if let extMsg, !extMsg.isEmpty {
+                        payload["extMsg"] = extMsg
+                    }
+                    call.resolve(payload)
+                case .failure(let error):
+                    call.reject(error.localizedDescription, nil, error)
+                }
             }
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
         }
     }
 
@@ -137,7 +187,7 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
               let cardSign = call.getString("cardSign"),
               let timeStamp = call.getString("timeStamp"),
               let nonceStr = call.getString("nonceStr") else {
-            call.reject("Missing required invoice parameters")
+            call.reject("Missing required invoice parameters.")
             return
         }
 
@@ -149,13 +199,17 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
             nonceStr: nonceStr
         )
 
-        implementation.chooseInvoice(options: options) { result in
-            switch result {
-            case .success(let cards):
-                call.resolve(["cards": cards])
-            case .failure(let error):
-                call.reject("Failed to choose invoice: \(error.localizedDescription)")
+        do {
+            try implementation.chooseInvoice(options: options) { result in
+                switch result {
+                case .success(let cards):
+                    call.resolve(["cards": cards])
+                case .failure(let error):
+                    call.reject(error.localizedDescription, nil, error)
+                }
             }
+        } catch {
+            call.reject(error.localizedDescription, nil, error)
         }
     }
 
@@ -163,4 +217,19 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["version": self.pluginVersion])
     }
 
+    @objc private func handleOpenURL(_ notification: Notification) {
+        guard let object = notification.object as? [String: Any],
+              let url = object["url"] as? URL else {
+            return
+        }
+        _ = implementation.handleOpenURL(url)
+    }
+
+    @objc private func handleContinueUserActivity(_ notification: Notification) {
+        guard let object = notification.object as? [String: Any],
+              let activity = object["userActivity"] as? NSUserActivity else {
+            return
+        }
+        _ = implementation.handleUniversalLink(activity)
+    }
 }
