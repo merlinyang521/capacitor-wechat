@@ -50,7 +50,6 @@ public class CapacitorWechatPlugin extends Plugin implements WechatResponseListe
     private static final int REQUEST_TYPE_MINI_PROGRAM = ConstantsAPI.COMMAND_LAUNCH_WX_MINIPROGRAM;
     private static final int REQUEST_TYPE_INVOICE = ConstantsAPI.COMMAND_CHOOSE_CARD_FROM_EX_CARD_PACKAGE;
 
-    private final String pluginVersion = "7.0.8";
     private static final int MINI_PROGRAM_TYPE_RELEASE = 0;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -60,6 +59,7 @@ public class CapacitorWechatPlugin extends Plugin implements WechatResponseListe
     private String currentAppId;
     private String universalLink;
     private IWXAPI api;
+    private final String pluginVersion = "7.0.9";
 
     @Override
     public void load() {
