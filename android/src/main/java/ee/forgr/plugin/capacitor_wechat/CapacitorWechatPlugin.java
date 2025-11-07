@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -29,19 +28,18 @@ import com.tencent.mm.opensdk.modelmsg.WXVideoObject;
 import com.tencent.mm.opensdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 @CapacitorPlugin(name = "CapacitorWechat")
 public class CapacitorWechatPlugin extends Plugin implements WechatResponseListener {
+
     private static final String TAG = "CapacitorWechat";
 
     private static final int REQUEST_TYPE_SHARE = ConstantsAPI.COMMAND_SENDMESSAGE_TO_WX;
@@ -180,12 +178,14 @@ public class CapacitorWechatPlugin extends Plugin implements WechatResponseListe
         String packageValue = call.getString("package");
         String sign = call.getString("sign");
 
-        if (TextUtils.isEmpty(partnerId) ||
+        if (
+            TextUtils.isEmpty(partnerId) ||
             TextUtils.isEmpty(prepayId) ||
             TextUtils.isEmpty(nonceStr) ||
             TextUtils.isEmpty(timeStamp) ||
             TextUtils.isEmpty(packageValue) ||
-            TextUtils.isEmpty(sign)) {
+            TextUtils.isEmpty(sign)
+        ) {
             call.reject(WechatConstants.ERROR_INVALID_ARGUMENTS);
             return;
         }
@@ -237,11 +237,13 @@ public class CapacitorWechatPlugin extends Plugin implements WechatResponseListe
         String timeStamp = call.getString("timeStamp");
         String nonceStr = call.getString("nonceStr");
 
-        if (TextUtils.isEmpty(appId) ||
+        if (
+            TextUtils.isEmpty(appId) ||
             TextUtils.isEmpty(signType) ||
             TextUtils.isEmpty(cardSign) ||
             TextUtils.isEmpty(timeStamp) ||
-            TextUtils.isEmpty(nonceStr)) {
+            TextUtils.isEmpty(nonceStr)
+        ) {
             call.reject(WechatConstants.ERROR_INVALID_ARGUMENTS);
             return;
         }
