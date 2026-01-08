@@ -22,6 +22,7 @@ public class CapacitorWechatPlugin: CAPPlugin, CAPBridgedPlugin {
     override public func load() {
         super.load()
         NotificationCenter.default.addObserver(self, selector: #selector(handleOpenURL(_:)), name: .capacitorOpenURL, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleOpenURL(_:)), name: .capacitorOpenUniversalLink, object: nil)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleContinueUserActivity(_:)),
